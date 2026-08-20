@@ -219,7 +219,7 @@ body {
 
 .col-header {
   display: grid;
-  grid-template-columns: 32px minmax(180px, 40%) 132px 72px 104px;
+  grid-template-columns: 32px minmax(180px, 40%) 112px 112px 72px 104px;
   gap: 8px;
   padding: 8px 10px;
   font-size: 14px;
@@ -237,7 +237,7 @@ body {
 
 .song-row {
   display: grid;
-  grid-template-columns: 32px minmax(180px, 40%) 132px 72px 104px;
+  grid-template-columns: 32px minmax(180px, 40%) 112px 112px 72px 104px;
   gap: 8px;
   padding: 8px 10px;
   border-radius: 7px;
@@ -443,7 +443,7 @@ body {
 
 @media (max-width: 920px) {
   :root { --sidebar-w: 190px; --details-w: 190px; }
-  .col-header, .song-row { grid-template-columns: 28px minmax(140px, 40%) 108px 64px 88px; }
+  .col-header, .song-row { grid-template-columns: 28px minmax(140px, 40%) 92px 96px 64px 88px; }
   .song-list-wrap { padding-left: 12px; padding-right: 12px; }
   .main-header { padding-left: 12px; padding-right: 12px; }
 }
@@ -459,7 +459,7 @@ body {
   .main { min-height: 520px; }
   .player-bar { grid-column: 1; grid-row: auto; grid-template-columns: 1fr; height: auto; padding: 12px 16px; gap: 10px; }
   .player-right { justify-content: center; }
-  .col-header, .song-row { grid-template-columns: 28px minmax(150px, 1fr) 64px 80px; }
+  .col-header, .song-row { grid-template-columns: 28px minmax(150px, 1fr) 64px 78px 64px 80px; }
   .col-header span:nth-child(3), .song-row > .col-text:first-of-type { display: none; }
   .row-actions { opacity: 1; }
 }

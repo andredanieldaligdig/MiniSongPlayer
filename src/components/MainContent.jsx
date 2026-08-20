@@ -20,6 +20,7 @@ function SongRow({ song, index, active, isPlaying, liked, isPlaylistView, onSele
         <div style={{ minWidth: 0 }}><div className="song-title">{song.title || 'Untitled'}</div><div className="song-sub">{song.artist || 'Unknown artist'}</div></div>
       </div>
       <div className="col-text">{song.album || '—'}</div>
+      <div className="col-text">{song.addedAt ? new Date(song.addedAt).toLocaleDateString() : '—'}</div>
       <span className="col-mono">{fmt(song.duration)}</span>
       <div className="row-actions">
         <button className="icon-btn" onClick={event => { event.stopPropagation(); onLike(song.id); }} title={liked ? 'Unlike' : 'Like'} aria-label={liked ? 'Unlike song' : 'Like song'}>{liked ? '♥' : '♡'}</button>
@@ -46,7 +47,7 @@ export default function MainContent({ displayList, currentView, currentFilter, s
         </div>
       </header>
       <section className="song-list-wrap">
-        <div className="col-header"><span>#</span><span>Title</span><span>Album</span><span>Time</span><span /></div>
+        <div className="col-header"><span>#</span><span>Title</span><span>Album</span><span>Date added</span><span>Time</span><span /></div>
         {displayList.length ? displayList.map((song, index) => <SongRow key={song.id} song={song} index={index} active={song.id === currentSongId} isPlaying={isPlaying} liked={likedIds.has(song.id)} isPlaylistView={currentView !== 'library' && currentView !== 'liked'} onSelect={onSelect} onPlay={onPlay} onLike={onLike} onRemoveFromPlaylist={onRemoveFromPlaylist} onAddToPlaylist={onAddToPlaylist} />) : <div className="empty-state"><div>♫</div><p>No songs here yet.</p></div>}
       </section>
     </main>
