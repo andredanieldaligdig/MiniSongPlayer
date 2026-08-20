@@ -1,0 +1,3 @@
+export default function AddToPlaylistModal({ open, onClose, playlists, songId, onAdd }) {
+  return <div className={`overlay ${open ? 'open' : ''}`} onMouseDown={event => event.target === event.currentTarget && onClose()}><div className="modal"><div className="modal-title">Add to playlist</div>{playlists.length ? playlists.map(playlist => <button className="nav-item" style={{ width: '100%', border: 0, background: 'none' }} key={playlist.id} onClick={() => onAdd(playlist.id, songId)}>♫ <span>{playlist.name}</span></button>) : <div className="empty-state"><p>Create a playlist first.</p></div>}<div className="modal-footer"><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div></div></div>;
+}
