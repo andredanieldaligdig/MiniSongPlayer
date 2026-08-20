@@ -1,3 +1,12 @@
+import { useState, useRef, useEffect, useMemo } from 'react';
+import Sidebar from './components/Sidebar';
+import MainContent from './components/MainContent';
+import PlayerBar from './components/PlayerBar';
+import PlaylistModal from './components/PlaylistModal';
+import AddToPlaylistModal from './components/AddToPlaylistModal';
+import SavingOverlay from './components/SavingOverlay';
+import Toast from './components/Toast';
+import { backfillDurations } from './backfilldurations';
 import {
   dbLoadSongs, dbDeleteSong,
   dbLoadPlaylists, dbInsertPlaylist, dbUpdatePlaylist, dbDeletePlaylist
@@ -68,7 +77,6 @@ export default function App() {
       const next = s.find(song => song.id === q[newIdx]);
       if (next) loadAndPlaySong(audio, next);
     };
-
     const onError = () => {
       setTimeout(() => {
         const { queue: q, queueIdx: idx, songs: s } = latestRef.current;
@@ -95,21 +103,24 @@ export default function App() {
 
   // ── Load initial data ─────────────────────────────────────────────────
   useEffect(() => {
-    async function init() {
-      setSaving(true); setSavingMsg('Loading…');
-      try {
-        const [s, p] = await Promise.all([dbLoadSongs(), dbLoadPlaylists()]);
-        setSongs(s);
-        setPlaylists(p);
-        if (s.length) setQueue(s.map(song => song.id));
-      } catch (err) {
-        showToast('Failed to load: ' + err.message, true);
-      } finally {
-        setSaving(false);
-      }
+  async function init() {
+    setSaving(true); setSavingMsg('Loading…');
+    try {
+      const [s, p] = await Promise.all([dbLoadSongs(), dbLoadPlaylists()]);
+      setSongs(s);
+      setPlaylists(p);
+      if (s.length) setQueue(s.map(song => song.id));
+
+      await backfillDurations(); // ← add this call
+
+    } catch (err) {
+      showToast('Failed to load: ' + err.message, true);
+    } finally {
+      setSaving(false);
     }
-    init();
-  }, []);
+  }
+  init();
+}, []);
 
   // ── Helpers ───────────────────────────────────────────────────────────
   function showToast(msg, isError = false) {
@@ -225,19 +236,20 @@ export default function App() {
   }
 
   function toggleShuffle() {
-    setShuffle(prev => {
-      const next = !prev;
-      if (next && currentSong) {
-        const { ids } = buildQueue(currentSong.id, true);
-        setQueue(ids);
-        setQueueIdx(0);
-      }
-      return next;
-    });
+    const next = !shuffle;
+    setShuffle(next);
+    if (next && currentSong) {
+      const { ids } = buildQueue(currentSong.id, true);
+      setQueue(ids);
+      setQueueIdx(0);
+    }
+    showToast(next ? 'Shuffle on' : 'Shuffle off');
   }
 
   function toggleRepeat() {
-    setRepeatMode(prev => prev === 'off' ? 'all' : prev === 'all' ? 'one' : 'off');
+    const next = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+    setRepeatMode(next);
+    showToast(next === 'all' ? 'Repeat all songs' : next === 'one' ? 'Repeat one song' : 'Repeat off');
   }
 
   function seek(pct) {
@@ -379,6 +391,7 @@ export default function App() {
         playlists={playlists}
         likedIds={likedIds}
         currentSongId={currentSong?.id}
+        isPlaying={isPlaying}
         onPlay={playSongById}
         onLike={toggleLike}
         onDelete={deleteSong}
