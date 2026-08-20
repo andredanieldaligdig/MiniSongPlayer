@@ -47,11 +47,6 @@ export async function dbLoadSongs() {
   return (data || []).map(mapSong);
 }
 
-export async function dbDeleteSong(id) {
-  const { error } = await requireSupabase().from('songs').delete().eq('id', id);
-  if (error) throw error;
-}
-
 // ── Playlists ───────────────────────────────────────────────────────────
 export async function dbLoadPlaylists() {
   const { data, error } = await requireSupabase()

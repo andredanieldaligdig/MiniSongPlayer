@@ -6,9 +6,10 @@ import PlaylistModal from './components/PlaylistModal';
 import AddToPlaylistModal from './components/AddToPlaylistModal';
 import SavingOverlay from './components/SavingOverlay';
 import Toast from './components/Toast';
-import { backfillDurations } from './backfilldurations';
+import DetailsPanel from './components/DetailsPanel';
+import { loadAudioDuration } from './helper';
 import {
-  dbLoadSongs, dbDeleteSong,
+  dbLoadSongs,
   dbLoadPlaylists, dbInsertPlaylist, dbUpdatePlaylist, dbDeletePlaylist
 } from './supabase';
 
@@ -18,6 +19,8 @@ export default function App() {
   // ── Data ──────────────────────────────────────────────────────────────
   const [songs, setSongs]         = useState([]);
   const [playlists, setPlaylists] = useState([]);
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [playerReady, setPlayerReady] = useState(false);
 
   // ── UI ────────────────────────────────────────────────────────────────
   const [currentView,   setCurrentView]   = useState('library');
@@ -111,8 +114,6 @@ export default function App() {
       setPlaylists(p);
       if (s.length) setQueue(s.map(song => song.id));
 
-      await backfillDurations(); // ← add this call
-
     } catch (err) {
       showToast('Failed to load: ' + err.message, true);
     } finally {
@@ -121,6 +122,20 @@ export default function App() {
   }
   init();
 }, []);
+
+  useEffect(() => {
+    const missingDurations = songs.filter(song => !song.duration && song.audioUrl);
+    if (!missingDurations.length) return;
+    let cancelled = false;
+    Promise.all(missingDurations.map(async song => [song.id, await loadAudioDuration(song.audioUrl)]))
+      .then(results => {
+        if (cancelled) return;
+        const durations = new Map(results.filter(([, value]) => value !== null));
+        if (!durations.size) return;
+        setSongs(previous => previous.map(song => durations.has(song.id) ? { ...song, duration: durations.get(song.id) } : song));
+      });
+    return () => { cancelled = true; };
+  }, [songs]);
 
   // ── Helpers ───────────────────────────────────────────────────────────
   function showToast(msg, isError = false) {
@@ -287,35 +302,6 @@ export default function App() {
     });
   }
 
-  // ── Delete song ───────────────────────────────────────────────────────
-  async function deleteSong(id) {
-    if (!confirm('Delete this song?')) return;
-    setSaving(true); setSavingMsg('Deleting…');
-    try {
-      await dbDeleteSong(id);
-      setSongs(prev => prev.filter(s => s.id !== id));
-      setLikedIds(prev => {
-        const next = new Set(prev);
-        next.delete(id);
-        localStorage.setItem(LIKED_KEY, JSON.stringify([...next]));
-        return next;
-      });
-      setPlaylists(prev =>
-        prev.map(pl => ({ ...pl, songIds: (pl.songIds || []).filter(sid => sid !== id) }))
-      );
-      if (currentSong?.id === id) {
-        audioRef.current?.pause();
-        setIsPlaying(false);
-        setQueue(prev => prev.filter(qid => qid !== id));
-      }
-      showToast('Song deleted.');
-    } catch (err) {
-      showToast('Error deleting: ' + err.message, true);
-    } finally {
-      setSaving(false);
-    }
-  }
-
   // ── Playlists ─────────────────────────────────────────────────────────
   async function savePlaylist(name) {
     setPlaylistModalOpen(false);
@@ -353,6 +339,10 @@ export default function App() {
     try {
       const pl         = playlists.find(p => p.id === playlistId);
       if (!pl) throw new Error('Playlist not found');
+      if ((pl.songIds || []).includes(songId)) {
+        showToast(`"${pl.name}" already contains this song.`);
+        return;
+      }
       const newSongIds = [...(pl.songIds || []), songId];
       await dbUpdatePlaylist(playlistId, { ...pl, songIds: newSongIds });
       setPlaylists(prev =>
@@ -366,6 +356,22 @@ export default function App() {
     }
   }
 
+  async function removeSongFromPlaylist(songId) {
+    const pl = playlists.find(playlist => playlist.id === currentView);
+    if (!pl) return;
+    setSaving(true); setSavingMsg('Removing from playlist…');
+    try {
+      const newSongIds = (pl.songIds || []).filter(id => id !== songId);
+      await dbUpdatePlaylist(pl.id, { ...pl, songIds: newSongIds });
+      setPlaylists(prev => prev.map(playlist => playlist.id === pl.id ? { ...playlist, songIds: newSongIds } : playlist));
+      showToast(`Removed from "${pl.name}".`);
+    } catch (err) {
+      showToast('Error removing song: ' + err.message, true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function openAddToPlaylist(songId) {
     setAddToPlSongId(songId);
     setAddToPlModalOpen(true);
@@ -373,7 +379,7 @@ export default function App() {
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
-    <div className="app">
+    <div className={`app ${selectedSong ? 'details-open' : ''} ${playerReady ? 'player-open' : ''}`}>
       <Sidebar
         currentView={currentView}
         setCurrentView={setCurrentView}
@@ -392,29 +398,31 @@ export default function App() {
         likedIds={likedIds}
         currentSongId={currentSong?.id}
         isPlaying={isPlaying}
+        onSelect={song => { setSelectedSong(song); setPlayerReady(true); }}
         onPlay={playSongById}
         onLike={toggleLike}
-        onDelete={deleteSong}
+        onRemoveFromPlaylist={removeSongFromPlaylist}
         onAddToPlaylist={openAddToPlaylist}
       />
-      <PlayerBar
-        currentSong={currentSong}
-        isPlaying={isPlaying}
-        shuffle={shuffle}
-        repeatMode={repeatMode}
-        currentTime={currentTime}
-        duration={duration}
-        volume={volume}
-        muted={muted}
-        onTogglePlay={togglePlay}
-        onPrev={prevSong}
-        onNext={nextSong}
-        onToggleShuffle={toggleShuffle}
-        onToggleRepeat={toggleRepeat}
-        onSeek={seek}
-        onSetVolume={handleSetVolume}
-        onToggleMute={toggleMute}
-      />
+      <DetailsPanel song={selectedSong} onClose={() => setSelectedSong(null)} />
+      {playerReady && <PlayerBar
+          currentSong={currentSong}
+          isPlaying={isPlaying}
+          shuffle={shuffle}
+          repeatMode={repeatMode}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          muted={muted}
+          onTogglePlay={togglePlay}
+          onPrev={prevSong}
+          onNext={nextSong}
+          onToggleShuffle={toggleShuffle}
+          onToggleRepeat={toggleRepeat}
+          onSeek={seek}
+          onSetVolume={handleSetVolume}
+          onToggleMute={toggleMute}
+        />}
       <PlaylistModal
         open={playlistModalOpen}
         onClose={() => setPlaylistModalOpen(false)}
