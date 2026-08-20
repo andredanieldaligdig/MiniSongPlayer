@@ -5,14 +5,6 @@ import {
 
 const LIKED_KEY = 'tunes_liked';
 
-// ── Stub DB functions (swap these out for real Supabase calls later) ──────────
-async function dbLoadSongs()              { return []; }
-async function dbDeleteSong(_id)          { }
-async function dbLoadPlaylists()          { return []; }
-async function dbInsertPlaylist(pl)       { return { ...pl, id: makeLocalId() }; }
-async function dbUpdatePlaylist(_id, pl)  { return pl; }
-async function dbDeletePlaylist(_id)      { }
-
 export default function App() {
   // ── Data ──────────────────────────────────────────────────────────────
   const [songs, setSongs]         = useState([]);
