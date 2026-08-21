@@ -23,9 +23,9 @@ function SongRow({ song, index, active, isPlaying, liked, isPlaylistView, onSele
       <div className="col-text">{song.addedAt ? new Date(song.addedAt).toLocaleDateString() : '—'}</div>
       <span className="col-mono">{fmt(song.duration)}</span>
       <div className="row-actions">
-        <button className="icon-btn" onClick={event => { event.stopPropagation(); onLike(song.id); }} title={liked ? 'Unlike' : 'Like'} aria-label={liked ? 'Unlike song' : 'Like song'}>{liked ? 'Liked' : 'Like'}</button>
-        <button className="icon-btn" onClick={event => { event.stopPropagation(); onAddToPlaylist(song.id); }} title="Add to playlist" aria-label="Add to playlist">Add</button>
-        {isPlaylistView && <button className="icon-btn" onClick={event => { event.stopPropagation(); onRemoveFromPlaylist(song.id); }} title="Remove from playlist" aria-label="Remove song from playlist">Remove</button>}
+        <button className="icon-btn" onClick={event => { event.stopPropagation(); onLike(song.id); }} title={liked ? 'Unlike' : 'Like'} aria-label={liked ? 'Unlike song' : 'Like song'}>{liked ? '♥' : '♡'}</button>
+        <button className="icon-btn" onClick={event => { event.stopPropagation(); onAddToPlaylist(song.id); }} title="Add to playlist" aria-label="Add to playlist">＋</button>
+        {isPlaylistView && <button className="icon-btn" onClick={event => { event.stopPropagation(); onRemoveFromPlaylist(song.id); }} title="Remove from playlist" aria-label="Remove song from playlist">×</button>}
       </div>
     </div>
   );
