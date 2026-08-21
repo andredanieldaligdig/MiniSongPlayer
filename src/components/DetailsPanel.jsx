@@ -18,10 +18,10 @@ export default function DetailsPanel({ song, onClose }) {
     <aside className="details-panel">
       <div className="details-header">
         <span className="details-label">Song details</span>
-        {song && <button className="icon-btn" onClick={onClose} title="Close details" aria-label="Close details">×</button>}
+        {song && <button className="icon-btn" onClick={onClose} title="Close details" aria-label="Close details">Close</button>}
       </div>
       <div className="details-content">
-          <div className="details-cover">{cover ? <img src={cover} alt="" /> : '♫'}</div>
+          <div className="details-cover">{cover ? <img src={cover} alt="" /> : ''}</div>
           <h2 className="details-title">{song.title || 'Untitled'}</h2>
           <p className="details-artist">{song.artist || 'Unknown artist'}</p>
           <dl className="details-list">

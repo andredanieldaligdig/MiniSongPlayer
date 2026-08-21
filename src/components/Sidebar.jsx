@@ -8,7 +8,7 @@ export default function Sidebar({ currentView, setCurrentView, playlists, onNewP
             Library
           </div>
           <div className={`nav-item ${currentView === 'liked' ? 'active' : ''}`} onClick={() => setCurrentView('liked')}>
-            <span>♡</span> Liked songs
+            Liked songs
           </div>
         </nav>
       </div>
@@ -22,7 +22,7 @@ export default function Sidebar({ currentView, setCurrentView, playlists, onNewP
         {playlists.map(playlist => (
           <div className={`playlist-row ${currentView === playlist.id ? 'active' : ''}`} key={playlist.id} onClick={() => setCurrentView(playlist.id)}>
             <span className="playlist-row-name">{playlist.name}</span>
-            <button className="playlist-delete" onClick={event => { event.stopPropagation(); onDeletePlaylist(playlist.id); }} title="Delete playlist" aria-label={`Delete ${playlist.name}`}>×</button>
+            <button className="playlist-delete" onClick={event => { event.stopPropagation(); onDeletePlaylist(playlist.id); }} title="Delete playlist" aria-label={`Delete ${playlist.name}`}>Delete</button>
           </div>
         ))}
       </div>

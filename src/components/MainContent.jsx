@@ -1,4 +1,4 @@
-import { EMOJIS, fmt } from '../helper';
+import { fmt } from '../helper';
 
 function formatSongDuration(duration) {
   if (typeof duration === 'number') return fmt(duration);
@@ -16,16 +16,16 @@ function SongRow({ song, index, active, isPlaying, liked, isPlaylistView, onSele
     <div className={`song-row ${active ? 'playing' : ''}`} onClick={() => onSelect(song)} onDoubleClick={() => onPlay(song.id)}>
       <div className="song-num">{active && isPlaying ? <div className="wave-icon"><span /><span /><span /></div> : index + 1}</div>
       <div className="song-info">
-        <div className="song-cover">{cover ? <img src={cover} alt="" /> : EMOJIS[index % EMOJIS.length]}</div>
+        <div className="song-cover">{cover ? <img src={cover} alt="" /> : ''}</div>
         <div style={{ minWidth: 0 }}><div className="song-title">{song.title || 'Untitled'}</div><div className="song-sub">{song.artist || 'Unknown artist'}</div></div>
       </div>
       <div className="col-text">{song.album || '—'}</div>
       <div className="col-text">{song.addedAt ? new Date(song.addedAt).toLocaleDateString() : '—'}</div>
       <span className="col-mono">{fmt(song.duration)}</span>
       <div className="row-actions">
-        <button className="icon-btn" onClick={event => { event.stopPropagation(); onLike(song.id); }} title={liked ? 'Unlike' : 'Like'} aria-label={liked ? 'Unlike song' : 'Like song'}>{liked ? '♥' : '♡'}</button>
-        <button className="icon-btn" onClick={event => { event.stopPropagation(); onAddToPlaylist(song.id); }} title="Add to playlist" aria-label="Add to playlist">＋</button>
-        {isPlaylistView && <button className="icon-btn" onClick={event => { event.stopPropagation(); onRemoveFromPlaylist(song.id); }} title="Remove from playlist" aria-label="Remove song from playlist">×</button>}
+        <button className="icon-btn" onClick={event => { event.stopPropagation(); onLike(song.id); }} title={liked ? 'Unlike' : 'Like'} aria-label={liked ? 'Unlike song' : 'Like song'}>{liked ? 'Liked' : 'Like'}</button>
+        <button className="icon-btn" onClick={event => { event.stopPropagation(); onAddToPlaylist(song.id); }} title="Add to playlist" aria-label="Add to playlist">Add</button>
+        {isPlaylistView && <button className="icon-btn" onClick={event => { event.stopPropagation(); onRemoveFromPlaylist(song.id); }} title="Remove from playlist" aria-label="Remove song from playlist">Remove</button>}
       </div>
     </div>
   );
@@ -39,7 +39,7 @@ export default function MainContent({ displayList, currentView, currentFilter, s
         <div className="header-row">
           <div className="page-title">{title}</div>
           <div className="header-actions">
-            <label className="search-wrap"><span>⌕</span><input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search songs..." aria-label="Search songs" /></label>
+            <label className="search-wrap"><input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search songs..." aria-label="Search songs" /></label>
           </div>
         </div>
         <div className="filter-row">
@@ -48,7 +48,7 @@ export default function MainContent({ displayList, currentView, currentFilter, s
       </header>
       <section className="song-list-wrap">
         <div className="col-header"><span>#</span><span>Title</span><span>Album</span><span>Date added</span><span>Time</span><span /></div>
-        {displayList.length ? displayList.map((song, index) => <SongRow key={song.id} song={song} index={index} active={song.id === currentSongId} isPlaying={isPlaying} liked={likedIds.has(song.id)} isPlaylistView={currentView !== 'library' && currentView !== 'liked'} onSelect={onSelect} onPlay={onPlay} onLike={onLike} onRemoveFromPlaylist={onRemoveFromPlaylist} onAddToPlaylist={onAddToPlaylist} />) : <div className="empty-state"><div>♫</div><p>No songs here yet.</p></div>}
+        {displayList.length ? displayList.map((song, index) => <SongRow key={song.id} song={song} index={index} active={song.id === currentSongId} isPlaying={isPlaying} liked={likedIds.has(song.id)} isPlaylistView={currentView !== 'library' && currentView !== 'liked'} onSelect={onSelect} onPlay={onPlay} onLike={onLike} onRemoveFromPlaylist={onRemoveFromPlaylist} onAddToPlaylist={onAddToPlaylist} />) : <div className="empty-state"><p>No songs here yet.</p></div>}
       </section>
     </main>
   );
