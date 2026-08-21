@@ -43,6 +43,7 @@ export default function App() {
 
   // ── Modals ────────────────────────────────────────────────────────────
   const [playlistModalOpen,  setPlaylistModalOpen]  = useState(false);
+  const [playlistDeleteTarget, setPlaylistDeleteTarget] = useState(null);
   const [addToPlModalOpen,   setAddToPlModalOpen]   = useState(false);
   const [addToPlSongId,      setAddToPlSongId]      = useState(null);
 
@@ -318,8 +319,16 @@ export default function App() {
     }
   }
 
-  async function deletePlaylist(id) {
-    if (!confirm('Delete this playlist?')) return;
+  function requestDeletePlaylist(id) {
+    const playlist = playlists.find(p => p.id === id);
+    if (!playlist) return;
+    setPlaylistDeleteTarget({ id: playlist.id, name: playlist.name });
+  }
+
+  async function confirmDeletePlaylist() {
+    if (!playlistDeleteTarget) return;
+    const { id } = playlistDeleteTarget;
+    setPlaylistDeleteTarget(null);
     setSaving(true); setSavingMsg('Deleting playlist…');
     try {
       await dbDeletePlaylist(id);
@@ -385,7 +394,7 @@ export default function App() {
         setCurrentView={setCurrentView}
         playlists={playlists}
         onNewPlaylist={() => setPlaylistModalOpen(true)}
-        onDeletePlaylist={deletePlaylist}
+        onDeletePlaylist={requestDeletePlaylist}
       />
       <MainContent
         displayList={displayList}
@@ -428,6 +437,20 @@ export default function App() {
         onClose={() => setPlaylistModalOpen(false)}
         onSave={savePlaylist}
       />
+      {playlistDeleteTarget && (
+        <div className="overlay open" onMouseDown={event => event.target === event.currentTarget && setPlaylistDeleteTarget(null)}>
+          <div className="modal">
+            <div className="modal-title">Delete playlist?</div>
+            <p style={{ marginBottom: '18px', color: '#5b5b58', lineHeight: 1.5 }}>
+              Are you sure you want to delete <strong>{playlistDeleteTarget.name}</strong>? This cannot be undone.
+            </p>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setPlaylistDeleteTarget(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={confirmDeletePlaylist}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
       <AddToPlaylistModal
         open={addToPlModalOpen}
         onClose={() => setAddToPlModalOpen(false)}
