@@ -459,6 +459,22 @@ body {
 }
 
 .player-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.volume-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--muted);
+}
+.volume-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: currentColor;
+  transition: opacity 0.15s ease;
+}
+.volume-icon.muted {
+  opacity: 0.35;
+}
 .vol-track { width: 70px; height: 3px; background: var(--border); border-radius: 100px; cursor: default; touch-action: none; }
 .vol-fill { height: 100%; background: var(--muted); border-radius: 100px; }
 
